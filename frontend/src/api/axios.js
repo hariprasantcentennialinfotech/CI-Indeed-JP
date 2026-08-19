@@ -5,9 +5,9 @@ const isLocal =
   window.location.hostname === '127.0.0.1';
 
 const api = axios.create({
-  baseURL: isLocal
+  baseURL: import.meta.env.VITE_API_URL || (isLocal
     ? 'http://localhost:5000/api'
-    : 'https://ci-indeed-jp-new.onrender.com/api',
+    : 'https://ci-indeed-jp-new.onrender.com/api'),
   headers: {
     'Content-Type': 'application/json',
   },
