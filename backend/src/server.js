@@ -18,9 +18,30 @@ require('./models/Skill');
 
 const app = express();
 
+// CORS — allow Netlify frontend and localhost dev
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://centennial-infotech-hiring-new.netlify.app',
+    process.env.FRONTEND_URL // optional: set this in Render env vars for flexibility
+].filter(Boolean); // remove undefined
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS policy blocked origin: ${origin}`));
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 // Middleware
 app.use(helmet());
-app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
 
