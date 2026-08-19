@@ -5,9 +5,6 @@ import { User, Mail, Phone, Lock, Sparkles, AlertCircle, Loader2, CheckCircle2, 
 import { motion } from 'framer-motion';
 
 const Signup = () => {
-    const [searchParams] = useSearchParams();
-    const initialRole = searchParams.get('role') === 'admin' ? 'admin' : 'user';
-    const [role, setRole] = useState(initialRole); // 'user' (Job Seeker) or 'admin' (Recruiter)
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
@@ -30,20 +27,16 @@ const Signup = () => {
         setError('');
 
         try {
-            const endpoint = role === 'admin' ? '/auth/admin/signup' : '/auth/user/signup';
-
-            // For admin, we need 'name' field, so merge first and last name
-            const payload = role === 'admin'
-                ? { name: `${formData.first_name} ${formData.last_name}`, email: formData.email, password: formData.password }
-                : formData;
+            const endpoint = '/auth/user/signup';
+            const payload = formData;
 
             const { data } = await api.post(endpoint, payload);
 
             localStorage.setItem('token', data.token);
-            localStorage.setItem('role', role);
+            localStorage.setItem('role', 'user');
             localStorage.setItem('name', data.name);
 
-            navigate(role === 'admin' ? '/admin/dashboard' : '/jobs');
+            navigate('/jobs');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to create account. Please try again.');
         } finally {
@@ -79,19 +72,14 @@ const Signup = () => {
                                 </div>
                             </Link>
                             <h2 className="text-5xl font-black mb-6 leading-[1.1] tracking-tighter">
-                                {role === 'user' ? 'Launch your career to new heights' : 'Build a world-class engineering team'}
+                                Launch your career to new heights
                             </h2>
                             <p className="text-white/80 text-lg mb-12 leading-relaxed font-medium">
-                                {role === 'user'
-                                    ? "Join Centennial Talent Solutions' elite network of tech professionals and get hired by global innovators."
-                                    : "Connect with pre-vetted senior talent and streamline your entire hiring pipeline with our platform."}
+                                Join Centennial Talent Solutions' elite network of tech professionals and get hired by global innovators.
                             </p>
 
                             <div className="space-y-6">
-                                {(role === 'user'
-                                    ? ["Tailored career opportunities", "Direct outreach from top firms", "Real-time application tracking"]
-                                    : ["Access to pre-vetted talent", "Advanced talent selection", "Automated interview scheduling"]
-                                ).map((text, i) => (
+                                {["Tailored career opportunities", "Direct outreach from top firms", "Real-time application tracking"].map((text, i) => (
                                     <motion.div
                                         key={i}
                                         initial={{ opacity: 0, x: -20 }}
@@ -119,21 +107,6 @@ const Signup = () => {
                         <div className="mb-10 flex flex-col items-center lg:items-start">
                             <h2 className="text-4xl font-black text-slate-900 tracking-tight">Create Account</h2>
                             <p className="text-slate-500 mt-2 font-medium">Enter your details to get started</p>
-                        </div>
-
-                        <div className="flex p-1.5 bg-slate-100/50 backdrop-blur-sm rounded-2xl mb-10 border border-slate-200/50">
-                            <button
-                                onClick={() => setRole('user')}
-                                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${role === 'user' ? 'bg-white text-primary-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Job Seeker
-                            </button>
-                            <button
-                                onClick={() => setRole('admin')}
-                                className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all duration-300 ${role === 'admin' ? 'bg-white text-primary-600 shadow-md' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Recruiter
-                            </button>
                         </div>
 
                         {error && (
@@ -193,24 +166,22 @@ const Signup = () => {
                                 </div>
                             </div>
 
-                            <div className={`grid grid-cols-1 ${role === 'user' ? 'md:grid-cols-2' : ''} gap-6`}>
-                                {role === 'user' && (
-                                    <div className="space-y-2">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Phone Number</label>
-                                        <div className="relative group">
-                                            <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 group-focus-within:text-primary-600 text-slate-400">
-                                                <Phone className="w-5 h-5" />
-                                            </div>
-                                            <input
-                                                name="phone"
-                                                required
-                                                className="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-primary-500 focus:bg-white transition-all duration-300 font-medium"
-                                                placeholder="+91..."
-                                                onChange={handleChange}
-                                            />
+                            <div className={`grid grid-cols-1 md:grid-cols-2 gap-6`}>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Phone Number</label>
+                                    <div className="relative group">
+                                        <div className="absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 group-focus-within:text-primary-600 text-slate-400">
+                                            <Phone className="w-5 h-5" />
                                         </div>
+                                        <input
+                                            name="phone"
+                                            required
+                                            className="w-full bg-slate-50/50 border-2 border-slate-100 rounded-2xl py-4 pl-12 pr-4 outline-none focus:border-primary-500 focus:bg-white transition-all duration-300 font-medium"
+                                            placeholder="+91..."
+                                            onChange={handleChange}
+                                        />
                                     </div>
-                                )}
+                                </div>
                                 <div className="space-y-2 text-left">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Password</label>
                                     <div className="relative group">

@@ -11,6 +11,7 @@ import UserApplications from './pages/UserApplications';
 import Profile from './pages/Profile';
 import JobDetail from './pages/JobDetail';
 import AdminUserProfile from './pages/AdminUserProfile';
+import AdminLogin from './pages/AdminLogin';
 
 // Protected Route Wrapper
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -32,6 +33,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/jobs/admin" element={<AdminLogin />} />
           <Route path="/jobs" element={<Jobs />} />
           <Route path="/jobs/:id" element={<JobDetail />} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
