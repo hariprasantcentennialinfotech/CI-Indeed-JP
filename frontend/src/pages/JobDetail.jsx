@@ -188,41 +188,40 @@ const JobDetail = () => {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="glass p-8 md:p-12 rounded-[3rem] shadow-premium relative overflow-hidden"
+                            className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100 relative overflow-hidden"
                         >
-                            <div className="absolute top-0 right-0 p-8">
-                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${job.status === 'open' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                            <div className="absolute top-8 right-8">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] ${job.status === 'open' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                     }`}>
                                     {job.status}
                                 </span>
                             </div>
 
-                            <div className="flex flex-col md:flex-row md:items-center gap-8">
-                                <div className="w-24 h-24 bg-white rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                                    <Building2 className="w-12 h-12 text-primary-600" />
+                            <div className="flex flex-col md:flex-row md:items-start gap-6">
+                                <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center justify-center flex-shrink-0">
+                                    <Building2 className="w-10 h-10 text-primary-600" />
                                 </div>
-                                <div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight mb-2">
+                                <div className="flex-1 mt-1">
+                                    <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter leading-tight mb-4">
                                         {job.title}
                                     </h1>
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 mb-4">
                                         <p className="text-primary-600 font-black text-lg">{job.company_name}</p>
-                                        <span className="text-slate-300 hidden md:inline">•</span>
+                                        <span className="w-1.5 h-1.5 bg-slate-200 rounded-full hidden md:inline"></span>
                                         <p className="text-slate-500 font-bold flex items-center capitalize">
                                             <Briefcase className="w-4 h-4 mr-2" />
                                             {job.job_type.replace('-', ' ')}
                                         </p>
-                                        <span className="text-slate-300 hidden md:inline">•</span>
+                                        <span className="w-1.5 h-1.5 bg-slate-200 rounded-full hidden md:inline"></span>
                                         <p className="text-slate-500 font-bold flex items-center">
                                             <Building2 className="w-4 h-4 mr-2" />
                                             {job.role}
                                         </p>
-                                        <span className="text-slate-300 hidden md:inline">•</span>
-                                        <p className="text-slate-400 text-sm font-medium flex items-center">
-                                            <Calendar className="w-4 h-4 mr-2" />
-                                            Posted {new Date(job.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
-                                        </p>
                                     </div>
+                                    <p className="text-slate-400 text-sm font-medium flex items-center">
+                                        <Calendar className="w-4 h-4 mr-2" />
+                                        Posted {new Date(job.createdAt).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}
+                                    </p>
                                 </div>
                             </div>
                         </motion.div>
@@ -232,7 +231,7 @@ const JobDetail = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="bg-white p-8 md:p-12 rounded-[3rem] shadow-sm border border-slate-100"
+                            className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100"
                         >
                             <h2 className="text-2xl font-black text-slate-900 mb-8 flex items-center">
                                 <FileText className="w-6 h-6 mr-3 text-primary-600" />
@@ -277,21 +276,21 @@ const JobDetail = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="bg-white p-8 rounded-[2.5rem] shadow-premium border border-slate-100"
+                            className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100"
                         >
                             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 text-left">Key Highlights</h3>
                             <div className="space-y-8">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-green-50 text-green-600 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                        {renderCurrencySymbol(job.currency, 'w-8 h-8')}
+                                    <div className="w-12 h-12 bg-green-50 text-green-700 rounded-2xl flex items-center justify-center flex-shrink-0">
+                                        <IndianRupee className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1 text-left">Annual Compensation</p>
-                                        <div className="text-2xl font-black text-slate-900 flex items-center gap-2">
-                                            {renderCurrencySymbol(job.currency, 'w-6 h-6')}
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Monthly Compensation</p>
+                                        <div className="text-xl font-black text-slate-900 flex items-center gap-1.5 flex-wrap">
+                                            <IndianRupee className="w-4 h-4" />
                                             <span>{Number(job.salary_min || 0).toLocaleString()}</span>
-                                            <span className="text-slate-200">-</span>
-                                            {renderCurrencySymbol(job.currency, 'w-5 h-5')}
+                                            <span className="text-slate-300">-</span>
+                                            <IndianRupee className="w-4 h-4" />
                                             <span>{Number(job.salary_max || 0).toLocaleString()}</span>
                                         </div>
                                     </div>
@@ -302,11 +301,11 @@ const JobDetail = () => {
                                         <MapPin className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1 text-left">Primary Location</p>
-                                        <p className="text-xl font-bold text-slate-900">
-                                            {job.location_city}, {job.country}
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Primary Location</p>
+                                        <p className="text-xl font-black text-slate-900 mb-2 text-left">
+                                            {job.country},
                                         </p>
-                                        <span className="inline-block mt-2 px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-black uppercase tracking-widest rounded-lg">
+                                        <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg">
                                             {job.work_mode}
                                         </span>
                                     </div>
@@ -317,8 +316,8 @@ const JobDetail = () => {
                                         <Briefcase className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1 text-left">Minimum Experience</p>
-                                        <p className="text-xl font-bold text-slate-900">
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Minimum Experience</p>
+                                        <p className="text-xl font-black text-slate-900 text-left">
                                             {job.experience_required} Year{job.experience_required !== 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -329,8 +328,8 @@ const JobDetail = () => {
                                         <Users className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1 text-left">Total Openings</p>
-                                        <p className="text-xl font-bold text-slate-900">
+                                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Total Openings</p>
+                                        <p className="text-xl font-black text-slate-900 text-left">
                                             {job.openings_count} Position{job.openings_count !== 1 ? 's' : ''}
                                         </p>
                                     </div>
@@ -340,7 +339,7 @@ const JobDetail = () => {
                             <button
                                 onClick={handleApplyClick}
                                 disabled={job.status !== 'open'}
-                                className={`w-full btn-premium ${job.status === 'open' ? 'btn-premium-primary' : 'bg-slate-200 text-slate-400 cursor-not-allowed'} py-5 mt-10 shadow-xl shadow-primary-200`}
+                                className={`w-full py-4 mt-8 rounded-2xl font-bold transition-all duration-300 ${job.status === 'open' ? 'bg-[#0f629c] hover:bg-[#0c5285] text-white shadow-lg shadow-blue-900/20' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
                             >
                                 {job.status === 'open' ? 'Apply Now' : 'Application Closed'}
                             </button>

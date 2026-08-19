@@ -124,7 +124,7 @@ const Jobs = () => {
     };
 
     return (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10">
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-8 lg:px-12 pt-32 pb-16">
             {/* Hero Header */}
             <div className="text-center mb-10">
                 <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 text-primary-600 text-xs font-black uppercase tracking-widest rounded-full mb-6">
@@ -140,34 +140,36 @@ const Jobs = () => {
             </div>
 
             {/* Search + Filters Row */}
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-12">
-                <div className="flex-1 relative">
+            <form onSubmit={handleSearch} className="bg-white border border-slate-100 shadow-sm rounded-3xl md:rounded-full p-2 flex flex-col md:flex-row items-center gap-2 mb-16 max-w-5xl mx-auto">
+                <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
-                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium"
+                        className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-slate-700 font-medium"
                         placeholder="Search by role, company, or location..."
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                     />
                 </div>
-                <div className="relative">
+                <div className="hidden md:block w-px h-8 bg-slate-200"></div>
+                <div className="relative w-full md:w-64 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                     <select
                         value={selectedRole}
                         onChange={(e) => setSelectedRole(e.target.value)}
-                        className="appearance-none w-full md:w-56 pl-12 pr-8 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium cursor-pointer"
+                        className="appearance-none w-full pl-12 pr-8 py-3 bg-transparent outline-none text-slate-700 font-medium cursor-pointer"
                     >
                         {['', 'UI/UX Design', 'Web Development', 'App Development', 'Quality Assurance', 'Software Development', 'IT Consulting'].map((cat) => (
                             <option key={cat} value={cat}>{cat === '' ? 'All Categories' : cat}</option>
                         ))}
                     </select>
                 </div>
-                <div className="relative">
+                <div className="hidden md:block w-px h-8 bg-slate-200"></div>
+                <div className="relative w-full md:w-56 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
                     <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                     <select
                         value={jobType}
                         onChange={(e) => setJobType(e.target.value)}
-                        className="appearance-none w-full md:w-48 pl-12 pr-8 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium capitalize cursor-pointer"
+                        className="appearance-none w-full pl-12 pr-8 py-3 bg-transparent outline-none text-slate-700 font-medium capitalize cursor-pointer"
                     >
                         {['', 'full-time', 'part-time', 'internship', 'contract'].map((type) => (
                             <option key={type} value={type}>{type === '' ? 'All Types' : type.replace('-', ' ')}</option>
@@ -175,6 +177,7 @@ const Jobs = () => {
                     </select>
                 </div>
             </form>
+
 
             <div>
                 {/* Job Listings Grid */}
@@ -190,7 +193,7 @@ const Jobs = () => {
                                 <p className="text-slate-500 font-medium">{jobs.length} jobs matching your criteria</p>
                             </div>
 
-                            <div className="grid gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
                                 <AnimatePresence>
                                     {jobs.map((job, index) => (
                                         <motion.div
@@ -198,74 +201,47 @@ const Jobs = () => {
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: index * 0.05 }}
-                                            className="group bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-primary-100 transition-all duration-300"
+                                            className="group bg-white p-6 rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:border-primary-100 transition-all duration-300 flex flex-col h-full"
                                         >
-                                            <div className="flex flex-start justify-between">
-                                                <div className="flex gap-5">
-                                                    <div className="w-14 h-14 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
-                                                        <Briefcase className="w-7 h-7 text-primary-600" />
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <Link to={`/jobs/${job._id}`} className="block">
-                                                            <h2 className="text-xl font-bold text-slate-900 group-hover:text-primary-600 transition-colors uppercase tracking-tight">{job.title}</h2>
-                                                        </Link>
-                                                        <div className="flex items-center gap-2">
-                                                            <p className="text-primary-600 font-semibold">{job.company_name}</p>
-                                                            <span className="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                                            <span className="text-slate-500 text-sm font-medium">{job.role}</span>
-                                                        </div>
-                                                    </div>
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-100">
+                                                    <Briefcase className="w-6 h-6 text-primary-600" />
                                                 </div>
-                                                <div className="flex flex-col items-end">
-                                                    <span className="px-3 py-1 bg-green-50 text-green-600 text-xs font-bold rounded-full uppercase">
-                                                        {job.job_type}
-                                                    </span>
-                                                    <p className="text-slate-400 text-xs mt-2 flex items-center">
-                                                        <Calendar className="w-3 h-3 mr-1" />
-                                                        {new Date(job.createdAt).toLocaleDateString()}
-                                                    </p>
-                                                </div>
+                                                <span className="px-3 py-1 bg-slate-50 text-slate-500 text-[10px] font-black rounded-full uppercase tracking-widest border border-slate-100">
+                                                    {job.job_type.replace('-', ' ')}
+                                                </span>
                                             </div>
 
-                                            <div className="mt-6 flex flex-wrap gap-4 text-sm text-slate-600">
-                                                <div className="flex items-center px-4 py-2 bg-slate-50 rounded-lg">
+                                            <div className="mb-8 flex-1">
+                                                <Link to={`/jobs/${job._id}`} className="block mb-2">
+                                                    <h2 className="text-xl font-black text-slate-900 group-hover:text-primary-600 transition-colors tracking-tight line-clamp-2">{job.title}</h2>
+                                                </Link>
+                                                <p className="text-primary-600 text-[11px] font-black uppercase tracking-[0.15em]">{job.company_name}</p>
+                                            </div>
+
+                                            <div className="space-y-3 text-sm text-slate-500 font-medium mb-8">
+                                                <div className="flex items-center">
                                                     <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                                                    {job.location_city}, {job.country}
+                                                    {job.location_city}, {job.country} <span className="mx-2">•</span> {job.work_mode}
                                                 </div>
-                                                <div className="flex items-center px-4 py-2 bg-slate-50 rounded-lg gap-2">
-                                                    {renderCurrencySymbol(job.currency)}
-                                                    <span className="font-bold text-slate-700">
-                                                        {Number(job.salary_min / 1000 || 0).toLocaleString()}k
-                                                    </span>
-                                                    <span className="text-slate-300">-</span>
-                                                    {renderCurrencySymbol(job.currency, 'w-4 h-4')}
-                                                    <span className="font-bold text-slate-700">
-                                                        {Number(job.salary_max / 1000 || 0).toLocaleString()}k
-                                                    </span>
-                                                </div>
-                                                <div className="flex items-center px-4 py-2 bg-slate-50 rounded-lg capitalize">
-                                                    <Briefcase className="w-4 h-4 mr-2 text-slate-400" />
-                                                    {job.work_mode}
+                                                <div className="flex items-center text-slate-900">
+                                                    {renderCurrencySymbol(job.currency, 'w-4 h-4 mr-2')}
+                                                    <span className="font-bold">{Number(job.salary_min / 1000 || 0).toLocaleString()}k - {Number(job.salary_max / 1000 || 0).toLocaleString()}k</span>
+                                                    <span className="text-slate-400 text-xs font-medium ml-1">/ Monthly</span>
                                                 </div>
                                             </div>
 
-                                            <div className="mt-6 pt-6 border-t border-slate-50 flex justify-between items-center">
-                                                <p className="text-slate-500 text-sm line-clamp-2 max-w-lg">
-                                                    {job.description}
-                                                </p>
-                                                <button
-                                                    onClick={() => handleApplyClick(job)}
-                                                    className="btn-primary py-2 px-6 text-sm font-bold flex items-center space-x-2"
-                                                >
-                                                    <span>Apply Now</span>
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </button>
-                                            </div>
+                                            <button
+                                                onClick={() => navigate(`/jobs/${job._id}`)}
+                                                className="w-full py-4 bg-slate-50 text-slate-900 text-[11px] font-black tracking-[0.2em] uppercase rounded-2xl transition-all duration-300 flex items-center justify-center group-hover:bg-primary-50 group-hover:text-primary-700"
+                                            >
+                                                VIEW DETAILS <ArrowRight className="w-3.5 h-3.5 ml-2" />
+                                            </button>
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
                                 {jobs.length === 0 && (
-                                    <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
+                                    <div className="col-span-full text-center py-20 bg-white rounded-3xl border border-dashed border-slate-200">
                                         <p className="text-slate-400">No jobs found matching your search. Try different keywords or location.</p>
                                     </div>
                                 )}

@@ -38,12 +38,9 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 const AppContent = () => {
   const location = useLocation();
 
-  // Hide Navbar on Login page
-  const hideNavbar = location.pathname === '/login';
-
   return (
     <div className="min-h-screen bg-slate-50">
-      {!hideNavbar && <Navbar />}
+      {location.pathname !== '/jobs/admin' && <Navbar />}
 
       <Routes>
         {/* Default route */}

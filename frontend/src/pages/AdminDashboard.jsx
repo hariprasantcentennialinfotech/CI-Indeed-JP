@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { Plus, Briefcase, Users, Eye, Edit, Trash2, Loader2, X, MapPin, DollarSign, Clock, GraduationCap, Phone, Mail, FileText, Building2, CheckCircle2, ArrowRight, Globe } from 'lucide-react';
@@ -30,6 +30,70 @@ const AdminDashboard = () => {
         role: 'Software Development'
     });
     const [editingJob, setEditingJob] = useState(null);
+    const [showRequirements, setShowRequirements] = useState(true);
+    const [showResponsibilities, setShowResponsibilities] = useState(true);
+
+    // Refs for contentEditable rich editors
+    const descRef = useRef(null);
+    const reqRef = useRef(null);
+    const respRef = useRef(null);
+
+    // Sync editor content when modal opens or editing job changes
+    useEffect(() => {
+        if (showModal) {
+            // Use timeout to ensure DOM is mounted
+            setTimeout(() => {
+                if (descRef.current) descRef.current.innerHTML = formData.description || '';
+                if (reqRef.current) reqRef.current.innerHTML = formData.requirements || '';
+                if (respRef.current) respRef.current.innerHTML = formData.responsibilities || '';
+            }, 0);
+        }
+    }, [showModal, editingJob]);
+
+    // Rich text editor helper
+    const applyFormat = (cmd, value = null) => {
+        document.execCommand(cmd, false, value);
+    };
+
+    const RichToolbar = ({ fieldName }) => (
+        <div className="flex items-center gap-1 p-2 border-b border-slate-100 bg-slate-50 rounded-t-xl flex-wrap">
+            <select
+                onChange={(e) => applyFormat('fontSize', e.target.value)}
+                className="text-xs font-bold text-slate-600 bg-white border border-slate-200 rounded-lg px-2 py-1 mr-2 outline-none"
+                defaultValue="3"
+            >
+                <option value="2">Small</option>
+                <option value="3">Normal</option>
+                <option value="4">Large</option>
+                <option value="5">X-Large</option>
+            </select>
+            {[
+                { cmd: 'bold', label: <strong>B</strong> },
+                { cmd: 'italic', label: <em>I</em> },
+                { cmd: 'underline', label: <span className="underline">U</span> },
+                { cmd: 'strikeThrough', label: <span className="line-through">S</span> },
+                { cmd: 'insertOrderedList', label: '≡' },
+                { cmd: 'insertUnorderedList', label: '≣' },
+            ].map(({ cmd, label }) => (
+                <button
+                    key={cmd}
+                    type="button"
+                    onMouseDown={(e) => { e.preventDefault(); applyFormat(cmd); }}
+                    className="w-8 h-8 flex items-center justify-center text-sm font-bold text-slate-600 hover:bg-white hover:text-primary-600 rounded-lg transition-all border border-transparent hover:border-slate-200"
+                >
+                    {label}
+                </button>
+            ))}
+            <button
+                type="button"
+                onMouseDown={(e) => { e.preventDefault(); applyFormat('removeFormat'); }}
+                className="w-8 h-8 flex items-center justify-center text-xs italic text-slate-400 hover:bg-white hover:text-red-500 rounded-lg transition-all border border-transparent hover:border-slate-200 ml-1"
+                title="Clear Formatting"
+            >
+                T<sub>x</sub>
+            </button>
+        </div>
+    );
 
     // Centralized currency display logic
     const renderCurrencySymbol = (currencyCode, size = 'w-5 h-5') => {
@@ -556,43 +620,84 @@ const AdminDashboard = () => {
                                         <h3 className="text-sm font-black text-slate-900 uppercase tracking-[0.15em]">3. Job Content</h3>
                                     </div>
                                     <div className="space-y-8 bg-white p-8 rounded-3xl border border-slate-100 shadow-sm">
-                                        <div className="space-y-2">
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Full Job Description</label>
-                                            <textarea
-                                                name="description"
-                                                value={formData.description}
-                                                required
-                                                rows="5"
-                                                className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 outline-none focus:border-primary-500 focus:bg-white transition-all duration-300 font-medium text-slate-600 resize-none leading-relaxed"
-                                                placeholder="Describe the overall mission and value proposition..."
-                                                onChange={handleChange}
-                                            />
+
+                                        {/* Show toggles */}
+                                        <div className="flex flex-wrap items-center gap-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Show Requirements Section?</span>
+                                                <div className="flex rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                                                    <button type="button" onClick={() => setShowRequirements(true)} className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${showRequirements ? 'bg-[#0f629c] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>Yes</button>
+                                                    <button type="button" onClick={() => setShowRequirements(false)} className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${!showRequirements ? 'bg-slate-200 text-slate-700' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>No</button>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-4">
+                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Show Responsibilities Section?</span>
+                                                <div className="flex rounded-xl overflow-hidden border border-slate-200 shadow-sm">
+                                                    <button type="button" onClick={() => setShowResponsibilities(true)} className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${showResponsibilities ? 'bg-[#0f629c] text-white' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>Yes</button>
+                                                    <button type="button" onClick={() => setShowResponsibilities(false)} className={`px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${!showResponsibilities ? 'bg-slate-200 text-slate-700' : 'bg-white text-slate-500 hover:bg-slate-50'}`}>No</button>
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        {/* Full Job Description Rich Editor */}
+                                        <div className="space-y-1">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Full Job Description</label>
+                                            <div className="border-2 border-slate-100 rounded-2xl overflow-hidden focus-within:border-primary-500 transition-all">
+                                                <RichToolbar fieldName="description" />
+                                                <div
+                                                    ref={descRef}
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onInput={(e) => {
+                                                        const html = e.currentTarget.innerHTML;
+                                                        setFormData(prev => ({ ...prev, description: html }));
+                                                    }}
+                                                    className="min-h-[140px] p-4 text-slate-600 font-medium leading-relaxed outline-none bg-white empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400"
+                                                    data-placeholder="Describe the overall mission and value proposition..."
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Requirements & Responsibilities */}
                                         <div className="grid md:grid-cols-2 gap-8">
-                                            <div className="space-y-2">
-                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Required Qualifications</label>
-                                                <textarea
-                                                    name="requirements"
-                                                    value={formData.requirements}
-                                                    required
-                                                    rows="4"
-                                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 outline-none focus:border-primary-500 focus:bg-white transition-all duration-300 font-medium text-slate-600 resize-none leading-relaxed"
-                                                    placeholder="Skills, experience, and certifications..."
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Key Responsibilities</label>
-                                                <textarea
-                                                    name="responsibilities"
-                                                    value={formData.responsibilities}
-                                                    required
-                                                    rows="4"
-                                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 outline-none focus:border-primary-500 focus:bg-white transition-all duration-300 font-medium text-slate-600 resize-none leading-relaxed"
-                                                    placeholder="Day-to-day tasks and expectations..."
-                                                    onChange={handleChange}
-                                                />
-                                            </div>
+                                            {showRequirements && (
+                                                <div className="space-y-1">
+                                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Required Qualifications</label>
+                                                    <div className="border-2 border-slate-100 rounded-2xl overflow-hidden focus-within:border-primary-500 transition-all">
+                                                        <RichToolbar fieldName="requirements" />
+                                                        <div
+                                                            ref={reqRef}
+                                                            contentEditable
+                                                            suppressContentEditableWarning
+                                                            onInput={(e) => {
+                                                                const html = e.currentTarget.innerHTML;
+                                                                setFormData(prev => ({ ...prev, requirements: html }));
+                                                            }}
+                                                            className="min-h-[120px] p-4 text-slate-600 font-medium leading-relaxed outline-none bg-white empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400"
+                                                            data-placeholder="Skills, experience, and certifications..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {showResponsibilities && (
+                                                <div className="space-y-1">
+                                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-left">Key Responsibilities</label>
+                                                    <div className="border-2 border-slate-100 rounded-2xl overflow-hidden focus-within:border-primary-500 transition-all">
+                                                        <RichToolbar fieldName="responsibilities" />
+                                                        <div
+                                                            ref={respRef}
+                                                            contentEditable
+                                                            suppressContentEditableWarning
+                                                            onInput={(e) => {
+                                                                const html = e.currentTarget.innerHTML;
+                                                                setFormData(prev => ({ ...prev, responsibilities: html }));
+                                                            }}
+                                                            className="min-h-[120px] p-4 text-slate-600 font-medium leading-relaxed outline-none bg-white empty:before:content-[attr(data-placeholder)] empty:before:text-slate-400"
+                                                            data-placeholder="Day-to-day tasks and expectations..."
+                                                        />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </section>
