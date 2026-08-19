@@ -124,86 +124,59 @@ const Jobs = () => {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-10">
-            {/* Search Header */}
-            <div className="mb-12">
-                <h1 className="text-4xl font-extrabold text-slate-900 mb-4 tracking-tight">Find your dream job today</h1>
-                <p className="text-lg text-slate-600 mb-8">Browse thousands of job opportunities across the globe.</p>
-
-                <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 p-2 bg-white rounded-2xl shadow-lg border border-slate-100">
-                    <div className="flex-1 relative">
-                        <Search className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                        <input
-                            className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-slate-700"
-                            placeholder="Job title, keywords, or company..."
-                            value={keyword}
-                            onChange={(e) => setKeyword(e.target.value)}
-                        />
-                    </div>
-                    <div className="hidden md:block w-px bg-slate-100 my-2"></div>
-                    <div className="flex-1 relative">
-                        <MapPin className="absolute left-4 top-3.5 w-5 h-5 text-slate-400" />
-                        <input
-                            className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-slate-700"
-                            placeholder="City, state, or country..."
-                            value={location}
-                            onChange={(e) => setLocation(e.target.value)}
-                        />
-                    </div>
-                    <button type="submit" className="md:w-32 btn-primary py-3">Search</button>
-                </form>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-10">
+            {/* Hero Header */}
+            <div className="text-center mb-10">
+                <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary-50 text-primary-600 text-xs font-black uppercase tracking-widest rounded-full mb-6">
+                    <span className="w-1.5 h-1.5 bg-primary-500 rounded-full"></span>
+                    Discover Your Next Career Move
+                </span>
+                <h1 className="text-5xl md:text-6xl font-black text-slate-900 mb-4 tracking-tight">
+                    Career <span className="text-primary-600">Opportunities</span>
+                </h1>
+                <p className="text-lg text-slate-500 max-w-xl mx-auto">
+                    Where talent learns, grows, and connects with opportunities at Centennial.
+                </p>
             </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
-                {/* Filters Sidebar */}
-                <div className="lg:w-64 space-y-8">
-                    <div>
-                        <h3 className="flex items-center text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                            <Filter className="w-4 h-4 mr-2" />
-                            Job Type
-                        </h3>
-                        <div className="space-y-3">
-                            {['', 'full-time', 'part-time', 'internship', 'contract'].map((type) => (
-                                <label key={type} className="flex items-center group cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="jobtype"
-                                        checked={jobType === type}
-                                        onChange={() => setJobType(type)}
-                                        className="w-4 h-4 text-primary-600 focus:ring-primary-500 border-slate-300"
-                                    />
-                                    <span className="ml-3 text-slate-600 group-hover:text-primary-600 capitalize">
-                                        {type === '' ? 'All Types' : type.replace('-', ' ')}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div>
-                        <h3 className="flex items-center text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
-                            <Briefcase className="w-4 h-4 mr-2" />
-                            Job Category
-                        </h3>
-                        <div className="space-y-3">
-                            {['', 'UI/UX Design', 'Web Development', 'App Development', 'Quality Assurance', 'Software Development', 'IT Consulting'].map((cat) => (
-                                <label key={cat} className="flex items-center group cursor-pointer">
-                                    <input
-                                        type="radio"
-                                        name="jobcategory"
-                                        checked={selectedRole === cat}
-                                        onChange={() => setSelectedRole(cat)}
-                                        className="w-4 h-4 text-primary-600 focus:ring-primary-500 border-slate-300"
-                                    />
-                                    <span className="ml-3 text-slate-600 group-hover:text-primary-600">
-                                        {cat === '' ? 'All Categories' : cat}
-                                    </span>
-                                </label>
-                            ))}
-                        </div>
-                    </div>
+            {/* Search + Filters Row */}
+            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-12">
+                <div className="flex-1 relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <input
+                        className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium"
+                        placeholder="Search by role, company, or location..."
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                    />
                 </div>
+                <div className="relative">
+                    <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                    <select
+                        value={selectedRole}
+                        onChange={(e) => setSelectedRole(e.target.value)}
+                        className="appearance-none w-full md:w-56 pl-12 pr-8 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium cursor-pointer"
+                    >
+                        {['', 'UI/UX Design', 'Web Development', 'App Development', 'Quality Assurance', 'Software Development', 'IT Consulting'].map((cat) => (
+                            <option key={cat} value={cat}>{cat === '' ? 'All Categories' : cat}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="relative">
+                    <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                    <select
+                        value={jobType}
+                        onChange={(e) => setJobType(e.target.value)}
+                        className="appearance-none w-full md:w-48 pl-12 pr-8 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-primary-400 text-slate-700 font-medium capitalize cursor-pointer"
+                    >
+                        {['', 'full-time', 'part-time', 'internship', 'contract'].map((type) => (
+                            <option key={type} value={type}>{type === '' ? 'All Types' : type.replace('-', ' ')}</option>
+                        ))}
+                    </select>
+                </div>
+            </form>
 
+            <div>
                 {/* Job Listings Grid */}
                 <div className="flex-1">
                     {loading ? (

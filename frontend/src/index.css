@@ -98,6 +98,51 @@
   transform: translateY(-2px);
 }
 
+/* Utility Button + Input System (used across Jobs/JobDetail/Applications/Admin) */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background: var(--primary-blue);
+  color: white;
+  font-weight: 700;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-primary:hover {
+  background: #002d78;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(0, 58, 155, 0.25);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.input-field {
+  width: 100%;
+  background: #f8fafc;
+  border: 2px solid #f1f5f9;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  outline: none;
+  font-weight: 500;
+  color: var(--text-dark);
+  transition: all 0.25s ease;
+}
+
+.input-field:focus {
+  border-color: var(--color-primary-500);
+  background: white;
+}
+
 /* Animations */
 @keyframes float {
   0% {
