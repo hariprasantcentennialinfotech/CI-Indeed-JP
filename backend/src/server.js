@@ -23,6 +23,8 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173',
     'https://centennial-infotech-hiring-new.netlify.app',
+    'https://centennial-infotech-staff-hiring.vercel.app',
+    'https://centennial-infotech-hiring.vercel.app',
     process.env.FRONTEND_URL // optional: set this in Render env vars for flexibility
 ].filter(Boolean); // remove undefined
 
