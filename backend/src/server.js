@@ -25,6 +25,8 @@ const allowedOrigins = [
     'https://centennial-infotech-hiring-new.netlify.app',
     'https://centennial-infotech-staff-hiring.vercel.app',
     'https://centennial-infotech-hiring.vercel.app',
+    'https://career.centennialinfotech.com',
+    'https://centennialinfotech.com',
     process.env.FRONTEND_URL // optional: set this in Render env vars for flexibility
 ].filter(Boolean); // remove undefined
 
@@ -32,7 +34,11 @@ app.use(cors({
     origin: (origin, callback) => {
         // Allow requests with no origin (mobile apps, curl, Postman)
         if (!origin) return callback(null, true);
-        if (allowedOrigins.includes(origin)) {
+        if (
+            allowedOrigins.includes(origin) || 
+            origin === 'https://centennialinfotech.com' || 
+            origin.endsWith('.centennialinfotech.com')
+        ) {
             return callback(null, true);
         }
         return callback(new Error(`CORS policy blocked origin: ${origin}`));
