@@ -205,3 +205,67 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Job Rich Content Typography */
+.job-rich-content {
+  color: #475569;
+  font-size: 1.125rem;
+  line-height: 1.75;
+  font-weight: 500;
+}
+
+.job-rich-content p {
+  margin-bottom: 1rem;
+}
+
+.job-rich-content p:last-child {
+  margin-bottom: 0;
+}
+
+.job-rich-content b,
+.job-rich-content strong {
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.job-rich-content ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.job-rich-content ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.job-rich-content li {
+  margin-bottom: 0.5rem;
+}
+
+.job-rich-content li:last-child {
+  margin-bottom: 0;
+}
+
+.job-rich-content h1,
+.job-rich-content h2,
+.job-rich-content h3,
+.job-rich-content h4 {
+  font-weight: 800;
+  color: #0f172a;
+  margin-top: 1.25rem;
+  margin-bottom: 0.5rem;
+}
+
+.job-rich-content a {
+  color: #0284c7;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.job-rich-content a:hover {
+  color: #0369a1;
+}

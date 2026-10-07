@@ -34,6 +34,20 @@ const JobDetail = () => {
         }
         return <span className="text-slate-900 font-black">$</span>;
     };
+
+    const formatLocation = (j) => {
+        if (!j) return '';
+        const city = (j.location_city || '').trim();
+        const state = (j.location_state || '').trim();
+        const country = (j.country || '').trim();
+
+        const parts = [];
+        if (city) parts.push(city);
+        if (state && !city.toLowerCase().includes(state.toLowerCase())) parts.push(state);
+        if (country && !city.toLowerCase().includes(country.toLowerCase())) parts.push(country);
+
+        return parts.join(', ') || 'Remote';
+    };
     const { id } = useParams();
     const navigate = useNavigate();
     const [job, setJob] = useState(null);
@@ -55,6 +69,102 @@ const JobDetail = () => {
     const [applyError, setApplyError] = useState('');
     const [applySuccess, setApplySuccess] = useState('');
 
+    // Helper to determine if a section has valid displayable content
+    const hasSectionContent = (content) => {
+        if (!content) return false;
+        if (Array.isArray(content)) {
+            return content.some(item => {
+                if (!item) return false;
+                const str = String(item);
+                const stripped = str.replace(/<[^>]*>/g, '').trim();
+                return stripped.length > 0 || /<img|<svg/i.test(str);
+            });
+        }
+        if (typeof content === 'string') {
+            const stripped = content.replace(/<[^>]*>/g, '').trim();
+            return stripped.length > 0 || /<img|<svg/i.test(content);
+        }
+        return Boolean(content);
+    };
+
+    // Helper to safely format and render rich job content (Job Overview, Requirements, Responsibilities)
+    const renderFormattedContent = (content) => {
+        if (!content) return null;
+
+        // If array of items
+        if (Array.isArray(content)) {
+            if (content.length === 0) return null;
+
+            // Check if any element contains HTML markup
+            const hasHtmlTags = content.some(item => typeof item === 'string' && /<[a-z/][\s\S]*>/i.test(item));
+
+            // If it's an array of plain text items (e.g. from seed or plain list), render clean bullets
+            if (!hasHtmlTags) {
+                const validItems = content.filter(item => item && String(item).trim() !== '');
+                if (validItems.length === 0) return null;
+                return (
+                    <ul className="space-y-3 my-2">
+                        {validItems.map((item, idx) => (
+                            <li key={idx} className="flex items-start text-slate-600 text-lg leading-relaxed font-medium">
+                                <span className="w-2 h-2 rounded-full bg-primary-600 mt-2.5 mr-3.5 flex-shrink-0" />
+                                <span>{item}</span>
+                            </li>
+                        ))}
+                    </ul>
+                );
+            }
+
+            // If elements contain HTML, join them
+            content = content.join('');
+        }
+
+        if (typeof content !== 'string') {
+            content = String(content);
+        }
+
+        let processed = content.trim();
+        if (!processed) return null;
+
+        // Decode HTML entities if the string was entity-escaped (e.g. &lt;p data-path-to-node...&gt;)
+        if (/&lt;[a-z/][\s\S]*?&gt;/i.test(processed) && !/<[a-z/][\s\S]*?>/i.test(processed)) {
+            if (typeof document !== 'undefined') {
+                const temp = document.createElement('textarea');
+                temp.innerHTML = processed;
+                processed = temp.value;
+            }
+        }
+
+        // Clean Google Docs / Gemini / rich editor metadata attributes (like data-path-to-node="3")
+        processed = processed.replace(/\s*data-[a-zA-Z0-9_-]+="[^"]*"/gi, '');
+        processed = processed.replace(/\s*data-[a-zA-Z0-9_-]+='[^']*'/gi, '');
+
+        // Check if processed string has HTML tags
+        const containsHtml = /<[a-z/][\s\S]*>/i.test(processed);
+
+        if (containsHtml) {
+            // Sanitize scripts and dangerous inline event handlers
+            processed = processed
+                .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/ on\w+\s*=\s*(["'])[\s\S]*?\1/gi, '')
+                .replace(/ on\w+\s*=\s*[^\s>]+/gi, '')
+                .replace(/href\s*=\s*(["'])\s*javascript:[\s\S]*?\1/gi, 'href="#"');
+
+            return (
+                <div
+                    className="job-rich-content text-slate-600 text-lg leading-relaxed font-medium"
+                    dangerouslySetInnerHTML={{ __html: processed }}
+                />
+            );
+        }
+
+        // Plain text with newlines
+        return (
+            <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-line font-medium">
+                {processed}
+            </p>
+        );
+    };
+
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
 
@@ -71,6 +181,111 @@ const JobDetail = () => {
         };
         fetchJob();
     }, [id]);
+
+    // Generate and inject Google / Schema.org JobPosting JSON-LD for SEO & Google Jobs
+    useEffect(() => {
+        if (!job) return;
+
+        const employmentTypeMap = {
+            'full-time': 'FULL_TIME',
+            'part-time': 'PART_TIME',
+            'contract': 'CONTRACTOR',
+            'internship': 'INTERN'
+        };
+
+        const cleanDescription = (html) => {
+            if (!html) return '';
+            return String(html)
+                .replace(/<[^>]*>/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        };
+
+        const fullDescription = [
+            cleanDescription(job.description),
+            Array.isArray(job.requirements) && job.requirements.length > 0 ? `Requirements: ${job.requirements.join('; ')}` : '',
+            Array.isArray(job.responsibilities) && job.responsibilities.length > 0 ? `Responsibilities: ${job.responsibilities.join('; ')}` : ''
+        ].filter(Boolean).join('. ') || job.title;
+
+        const jobPostingSchema = {
+            '@context': 'https://schema.org/',
+            '@type': 'JobPosting',
+            title: job.title,
+            description: fullDescription,
+            identifier: {
+                '@type': 'PropertyValue',
+                name: job.company_name || 'Centennial Infotech',
+                value: job.job_id || String(job._id)
+            },
+            datePosted: job.createdAt ? new Date(job.createdAt).toISOString() : new Date().toISOString(),
+            validThrough: job.application_deadline
+                ? new Date(job.application_deadline).toISOString()
+                : new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
+            employmentType: employmentTypeMap[job.job_type] || 'FULL_TIME',
+            hiringOrganization: {
+                '@type': 'Organization',
+                name: job.company_name || 'Centennial Infotech',
+                sameAs: 'https://centennialinfotech.com',
+                logo: job.company_logo || 'https://centennialinfotech.com/logo.png'
+            }
+        };
+
+        if (job.work_mode === 'remote') {
+            jobPostingSchema.jobLocationType = 'TELECOMMUTE';
+            jobPostingSchema.applicantLocationRequirements = {
+                '@type': 'Country',
+                name: job.country || 'India'
+            };
+        } else {
+            jobPostingSchema.jobLocation = {
+                '@type': 'Place',
+                address: {
+                    '@type': 'PostalAddress',
+                    addressLocality: job.location_city || 'Not Specified',
+                    addressRegion: job.location_state || '',
+                    addressCountry: job.country || 'IN'
+                }
+            };
+        }
+
+        if (job.salary_min || job.salary_max) {
+            jobPostingSchema.baseSalary = {
+                '@type': 'MonetaryAmount',
+                currency: job.currency || 'INR',
+                value: {
+                    '@type': 'QuantitativeValue',
+                    minValue: job.salary_min || 0,
+                    maxValue: job.salary_max || job.salary_min || 0,
+                    unitText: 'MONTH'
+                }
+            };
+        }
+
+        if (job.experience_required !== undefined && job.experience_required !== null && job.experience_required !== '') {
+            jobPostingSchema.experienceRequirements = {
+                '@type': 'OccupationalExperienceRequirements',
+                monthsOfExperience: Number(job.experience_required) * 12
+            };
+        }
+
+        let scriptTag = document.getElementById('job-schema-jsonld');
+        if (!scriptTag) {
+            scriptTag = document.createElement('script');
+            scriptTag.id = 'job-schema-jsonld';
+            scriptTag.type = 'application/ld+json';
+            document.head.appendChild(scriptTag);
+        }
+        scriptTag.text = JSON.stringify(jobPostingSchema);
+
+        document.title = `${job.title} at ${job.company_name || 'Centennial Infotech'} | Career Portal`;
+
+        return () => {
+            const existingScript = document.getElementById('job-schema-jsonld');
+            if (existingScript) {
+                existingScript.remove();
+            }
+        };
+    }, [job]);
 
     const handleApplyClick = async () => {
         if (!token) {
@@ -237,33 +452,31 @@ const JobDetail = () => {
                                 <FileText className="w-6 h-6 mr-3 text-primary-600" />
                                 Job Overview
                             </h2>
-                            <div className="prose prose-slate max-w-none">
-                                <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-line font-medium">
-                                    {job.description}
-                                </p>
+                            <div className="max-w-none">
+                                {renderFormattedContent(job.description)}
                             </div>
 
-                            {job.requirements && (
+                            {hasSectionContent(job.requirements) && (
                                 <div className="mt-12 pt-12 border-t border-slate-100">
                                     <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center">
                                         <CheckCircle2 className="w-6 h-6 mr-3 text-primary-600" />
                                         Requirements
                                     </h3>
-                                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-line font-medium">
-                                        {job.requirements}
-                                    </p>
+                                    <div className="max-w-none">
+                                        {renderFormattedContent(job.requirements)}
+                                    </div>
                                 </div>
                             )}
 
-                            {job.responsibilities && (
+                            {hasSectionContent(job.responsibilities) && (
                                 <div className="mt-12 pt-12 border-t border-slate-100">
                                     <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center">
                                         <Zap className="w-6 h-6 mr-3 text-primary-600" />
                                         Responsibilities
                                     </h3>
-                                    <p className="text-slate-600 text-lg leading-relaxed whitespace-pre-line font-medium">
-                                        {job.responsibilities}
-                                    </p>
+                                    <div className="max-w-none">
+                                        {renderFormattedContent(job.responsibilities)}
+                                    </div>
                                 </div>
                             )}
                         </motion.div>
@@ -303,7 +516,7 @@ const JobDetail = () => {
                                     <div>
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Primary Location</p>
                                         <p className="text-xl font-black text-slate-900 mb-2 text-left">
-                                            {job.country},
+                                            {formatLocation(job)}
                                         </p>
                                         <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-[10px] font-black uppercase tracking-widest rounded-lg">
                                             {job.work_mode}
@@ -318,7 +531,11 @@ const JobDetail = () => {
                                     <div>
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Minimum Experience</p>
                                         <p className="text-xl font-black text-slate-900 text-left">
-                                            {job.experience_required} Year{job.experience_required !== 1 ? 's' : ''}
+                                            {job.experience_required !== undefined && job.experience_required !== null && job.experience_required !== ''
+                                                ? (Number(job.experience_required) === 0
+                                                    ? 'Fresher / 0 Years'
+                                                    : `${job.experience_required} Year${Number(job.experience_required) !== 1 ? 's' : ''}`)
+                                                : 'Not Specified'}
                                         </p>
                                     </div>
                                 </div>

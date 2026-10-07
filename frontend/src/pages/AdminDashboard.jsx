@@ -55,6 +55,13 @@ const AdminDashboard = () => {
         document.execCommand(cmd, false, value);
     };
 
+    const cleanRichHtml = (html) => {
+        if (!html) return '';
+        return String(html)
+            .replace(/\s*data-[a-zA-Z0-9_-]+="[^"]*"/gi, '')
+            .replace(/\s*data-[a-zA-Z0-9_-]+='[^']*'/gi, '');
+    };
+
     const RichToolbar = ({ fieldName }) => (
         <div className="flex items-center gap-1 p-2 border-b border-slate-100 bg-slate-50 rounded-t-xl flex-wrap">
             <select
@@ -129,13 +136,19 @@ const AdminDashboard = () => {
         console.log('Submitting Job Form Data:', formData);
         setFormLoading(true);
         try {
-            console.log('Final Form Data to Send:', formData);
+            const cleanData = {
+                ...formData,
+                description: cleanRichHtml(formData.description),
+                requirements: cleanRichHtml(formData.requirements),
+                responsibilities: cleanRichHtml(formData.responsibilities)
+            };
+            console.log('Final Form Data to Send:', cleanData);
             if (editingJob) {
-                console.log('UPDATING JOB:', editingJob._id, formData);
-                await api.put(`/jobs/${editingJob._id}`, formData);
+                console.log('UPDATING JOB:', editingJob._id, cleanData);
+                await api.put(`/jobs/${editingJob._id}`, cleanData);
                 alert('Job updated successfully!');
             } else {
-                await api.post('/jobs', formData);
+                await api.post('/jobs', cleanData);
                 alert('Job published successfully!');
             }
             setShowModal(false);

@@ -56,7 +56,7 @@ app.use(cors(corsOptions));
 
 // ── Explicitly handle ALL OPTIONS pre-flight requests before any other middleware
 // This ensures CORS headers are sent even if a route doesn't exist yet
-app.options('*', cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(helmet());

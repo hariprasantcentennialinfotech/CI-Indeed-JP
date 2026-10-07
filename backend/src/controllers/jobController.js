@@ -60,26 +60,97 @@ exports.createJob = async (req, res) => {
 // @access  Public
 exports.getJobs = async (req, res) => {
     try {
-        const { keyword, location, job_type, work_mode, role } = req.query;
+        const { keyword, location, job_type, work_mode, role, exp, experience } = req.query;
 
-        let query = { status: 'open' };
+        const andConditions = [{ status: 'open' }];
 
-        // Simple Search/Filter logic
-        if (keyword) {
-            query.title = { $regex: keyword, $options: 'i' };
-        }
-        if (location) {
-            query.$or = [
-                { location_city: { $regex: location, $options: 'i' } },
-                { location_state: { $regex: location, $options: 'i' } }
+        // Keyword search across title, company, role, location, description, and skills
+        if (keyword && keyword.trim()) {
+            const trimmedKeyword = keyword.trim();
+            const regex = { $regex: trimmedKeyword, $options: 'i' };
+
+            // Find matching company IDs if any
+            const matchingCompanies = await Company.find({ name: regex }).select('_id');
+            const companyIds = matchingCompanies.map(c => c._id);
+
+            // Find matching skill IDs if any
+            const matchingSkills = await Skill.find({ skill_name: regex }).select('_id');
+            const skillIds = matchingSkills.map(s => s._id);
+
+            const keywordOr = [
+                { title: regex },
+                { company_name: regex },
+                { role: regex },
+                { location_city: regex },
+                { location_state: regex },
+                { country: regex },
+                { description: regex }
             ];
+
+            if (companyIds.length > 0) {
+                keywordOr.push({ company_id: { $in: companyIds } });
+            }
+            if (skillIds.length > 0) {
+                keywordOr.push({ skills_required: { $in: skillIds } });
+            }
+
+            andConditions.push({ $or: keywordOr });
         }
-        if (job_type) query.job_type = job_type;
-        if (work_mode) query.work_mode = work_mode;
-        if (role) query.role = role;
+
+        // Dedicated Location filter (if passed explicitly)
+        if (location && location.trim()) {
+            const locRegex = { $regex: location.trim(), $options: 'i' };
+            andConditions.push({
+                $or: [
+                    { location_city: locRegex },
+                    { location_state: locRegex },
+                    { country: locRegex }
+                ]
+            });
+        }
+
+        // Job Type filter
+        if (job_type) {
+            andConditions.push({ job_type });
+        }
+
+        // Work Mode filter
+        if (work_mode) {
+            andConditions.push({ work_mode });
+        }
+
+        // Role filter
+        if (role) {
+            andConditions.push({ role });
+        }
+
+        // Experience filter (supports '0-1', '1-3', '3-5', '5+' or numbers)
+        const expFilter = exp || experience;
+        if (expFilter && expFilter !== 'all' && expFilter !== '') {
+            if (expFilter === '0-1' || expFilter === 'fresher') {
+                andConditions.push({
+                    $or: [
+                        { experience_required: { $lte: 1 } },
+                        { experience_required: null },
+                        { experience_required: { $exists: false } }
+                    ]
+                });
+            } else if (expFilter === '1-3') {
+                andConditions.push({ experience_required: { $gte: 1, $lte: 3 } });
+            } else if (expFilter === '3-5') {
+                andConditions.push({ experience_required: { $gte: 3, $lte: 5 } });
+            } else if (expFilter === '5+' || expFilter === '5plus') {
+                andConditions.push({ experience_required: { $gte: 5 } });
+            } else if (!isNaN(Number(expFilter))) {
+                andConditions.push({ experience_required: { $lte: Number(expFilter) } });
+            }
+        }
+
+        const query = andConditions.length > 1 ? { $and: andConditions } : andConditions[0];
 
         const jobs = await Job.find(query)
             .populate('company_id', 'name logo')
+            .populate('skills_required', 'skill_name')
             .sort({ createdAt: -1 });
 
         res.json(jobs);

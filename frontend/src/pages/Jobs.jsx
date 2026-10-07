@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/axios';
-import { Search, MapPin, Briefcase, DollarSign, Calendar, Filter, Loader2, ArrowRight, X, FileText, Send } from 'lucide-react';
+import { Search, MapPin, Briefcase, DollarSign, Calendar, Filter, Loader2, ArrowRight, X, FileText, Send, Clock, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InrLogo from '../assets/inr-logo.jpg';
 
@@ -17,10 +17,25 @@ const Jobs = () => {
         }
         return <span className="text-slate-900 font-black">$</span>;
     };
+
+    const formatLocation = (j) => {
+        if (!j) return '';
+        const city = (j.location_city || '').trim();
+        const state = (j.location_state || '').trim();
+        const country = (j.country || '').trim();
+
+        const parts = [];
+        if (city) parts.push(city);
+        if (state && !city.toLowerCase().includes(state.toLowerCase())) parts.push(state);
+        if (country && !city.toLowerCase().includes(country.toLowerCase())) parts.push(country);
+
+        return parts.join(', ') || 'Remote';
+    };
     const [keyword, setKeyword] = useState('');
     const [location, setLocation] = useState('');
     const [jobType, setJobType] = useState('');
     const [selectedRole, setSelectedRole] = useState('');
+    const [experience, setExperience] = useState('');
 
     // Application state
     const [selectedJob, setSelectedJob] = useState(null);
@@ -42,14 +57,21 @@ const Jobs = () => {
     const token = localStorage.getItem('token');
     const role = localStorage.getItem('role');
 
-    const fetchJobs = async () => {
+    const fetchJobs = async (customParams = {}) => {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            if (keyword) params.append('keyword', keyword);
-            if (location) params.append('location', location);
-            if (jobType) params.append('job_type', jobType);
-            if (selectedRole) params.append('role', selectedRole);
+            const kw = customParams.keyword !== undefined ? customParams.keyword : keyword;
+            const loc = customParams.location !== undefined ? customParams.location : location;
+            const jt = customParams.jobType !== undefined ? customParams.jobType : jobType;
+            const r = customParams.selectedRole !== undefined ? customParams.selectedRole : selectedRole;
+            const exp = customParams.experience !== undefined ? customParams.experience : experience;
+
+            if (kw && kw.trim()) params.append('keyword', kw.trim());
+            if (loc && loc.trim()) params.append('location', loc.trim());
+            if (jt) params.append('job_type', jt);
+            if (r) params.append('role', r);
+            if (exp) params.append('exp', exp);
 
             const { data } = await api.get(`/jobs?${params.toString()}&_cb=${Date.now()}`);
             setJobs(data);
@@ -62,12 +84,23 @@ const Jobs = () => {
 
     useEffect(() => {
         fetchJobs();
-    }, [jobType, selectedRole]);
+    }, [jobType, selectedRole, experience]);
 
     const handleSearch = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         fetchJobs();
     };
+
+    const clearFilters = () => {
+        setKeyword('');
+        setLocation('');
+        setJobType('');
+        setSelectedRole('');
+        setExperience('');
+        fetchJobs({ keyword: '', location: '', jobType: '', selectedRole: '', experience: '' });
+    };
+
+    const hasActiveFilters = Boolean(keyword || location || jobType || selectedRole || experience);
 
     const handleApplyClick = async (job) => {
         if (!token) {
@@ -140,18 +173,35 @@ const Jobs = () => {
             </div>
 
             {/* Search + Filters Row */}
-            <form onSubmit={handleSearch} className="bg-white border border-slate-100 shadow-sm rounded-3xl md:rounded-full p-2 flex flex-col md:flex-row items-center gap-2 mb-16 max-w-5xl mx-auto">
+            <form onSubmit={handleSearch} className="bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow rounded-3xl md:rounded-full p-2.5 flex flex-col md:flex-row items-center gap-2 mb-8 max-w-6xl mx-auto">
+                {/* Keyword Search Input */}
                 <div className="flex-1 relative w-full">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                     <input
-                        className="w-full pl-12 pr-4 py-3 bg-transparent outline-none text-slate-700 font-medium"
+                        className="w-full pl-12 pr-10 py-3 bg-transparent outline-none text-slate-700 font-medium placeholder:text-slate-400"
                         placeholder="Search by role, company, or location..."
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                     />
+                    {keyword && (
+                        <button
+                            type="button"
+                            onClick={() => {
+                                setKeyword('');
+                                fetchJobs({ keyword: '' });
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 hover:text-slate-600 rounded-full"
+                            title="Clear search"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    )}
                 </div>
+
                 <div className="hidden md:block w-px h-8 bg-slate-200"></div>
-                <div className="relative w-full md:w-64 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
+
+                {/* Role / Category Filter */}
+                <div className="relative w-full md:w-56 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
                     <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                     <select
                         value={selectedRole}
@@ -159,12 +209,33 @@ const Jobs = () => {
                         className="appearance-none w-full pl-12 pr-8 py-3 bg-transparent outline-none text-slate-700 font-medium cursor-pointer"
                     >
                         {['', 'UI/UX Design', 'Web Development', 'App Development', 'Quality Assurance', 'Software Development', 'IT Consulting'].map((cat) => (
-                            <option key={cat} value={cat}>{cat === '' ? 'All Categories' : cat}</option>
+                            <option key={cat} value={cat}>{cat === '' ? 'All Roles' : cat}</option>
                         ))}
                     </select>
                 </div>
+
                 <div className="hidden md:block w-px h-8 bg-slate-200"></div>
-                <div className="relative w-full md:w-56 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
+
+                {/* Experience Filter */}
+                <div className="relative w-full md:w-52 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
+                    <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                    <select
+                        value={experience}
+                        onChange={(e) => setExperience(e.target.value)}
+                        className="appearance-none w-full pl-12 pr-8 py-3 bg-transparent outline-none text-slate-700 font-medium cursor-pointer"
+                    >
+                        <option value="">All Experience</option>
+                        <option value="0-1">0 - 1 Yrs (Fresher)</option>
+                        <option value="1-3">1 - 3 Years</option>
+                        <option value="3-5">3 - 5 Years</option>
+                        <option value="5+">5+ Years</option>
+                    </select>
+                </div>
+
+                <div className="hidden md:block w-px h-8 bg-slate-200"></div>
+
+                {/* Job Type Filter */}
+                <div className="relative w-full md:w-48 border-t md:border-t-0 border-slate-100 pt-2 md:pt-0">
                     <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                     <select
                         value={jobType}
@@ -176,8 +247,63 @@ const Jobs = () => {
                         ))}
                     </select>
                 </div>
+
+                {/* Search Action Button */}
+                <button
+                    type="submit"
+                    className="w-full md:w-auto px-7 py-3 bg-[#0f629c] hover:bg-[#0c5285] text-white font-bold rounded-2xl md:rounded-full transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 flex-shrink-0 cursor-pointer"
+                >
+                    <Search className="w-4 h-4" />
+                    <span>Search</span>
+                </button>
             </form>
 
+            {/* Active Filters Bar */}
+            {hasActiveFilters && (
+                <div className="flex flex-wrap items-center gap-2 mb-8 max-w-6xl mx-auto px-2">
+                    <span className="text-xs font-bold text-slate-400 uppercase tracking-wider mr-1">Active Filters:</span>
+                    {keyword && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-700 text-xs font-bold rounded-full">
+                            Search: &ldquo;{keyword}&rdquo;
+                            <button type="button" onClick={() => { setKeyword(''); fetchJobs({ keyword: '' }); }} className="hover:text-red-500 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {selectedRole && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-50 text-blue-700 text-xs font-bold rounded-full">
+                            Role: {selectedRole}
+                            <button type="button" onClick={() => setSelectedRole('')} className="hover:text-red-500 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {experience && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-purple-50 text-purple-700 text-xs font-bold rounded-full">
+                            Exp: {experience === '0-1' ? '0-1 Yrs' : experience === '1-3' ? '1-3 Yrs' : experience === '3-5' ? '3-5 Yrs' : '5+ Yrs'}
+                            <button type="button" onClick={() => setExperience('')} className="hover:text-red-500 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    {jobType && (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full capitalize">
+                            Type: {jobType.replace('-', ' ')}
+                            <button type="button" onClick={() => setJobType('')} className="hover:text-red-500 cursor-pointer">
+                                <X className="w-3.5 h-3.5" />
+                            </button>
+                        </span>
+                    )}
+                    <button
+                        type="button"
+                        onClick={clearFilters}
+                        className="inline-flex items-center gap-1 text-xs font-bold text-red-500 hover:text-red-700 ml-2 cursor-pointer"
+                    >
+                        <RotateCcw className="w-3 h-3" />
+                        Clear All
+                    </button>
+                </div>
+            )}
 
             <div>
                 {/* Job Listings Grid */}
@@ -221,8 +347,20 @@ const Jobs = () => {
 
                                             <div className="space-y-3 text-sm text-slate-500 font-medium mb-8">
                                                 <div className="flex items-center">
-                                                    <MapPin className="w-4 h-4 mr-2 text-slate-400" />
-                                                    {job.location_city}, {job.country} <span className="mx-2">•</span> {job.work_mode}
+                                                    <MapPin className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
+                                                    <span className="truncate">{formatLocation(job)}</span>
+                                                    <span className="mx-2">•</span>
+                                                    <span className="capitalize flex-shrink-0">{job.work_mode}</span>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <Clock className="w-4 h-4 mr-2 text-slate-400 flex-shrink-0" />
+                                                    <span>
+                                                        {job.experience_required !== undefined && job.experience_required !== null && job.experience_required !== ''
+                                                            ? (Number(job.experience_required) === 0
+                                                                ? 'Fresher / 0 Yrs Exp'
+                                                                : `${job.experience_required} Year${Number(job.experience_required) !== 1 ? 's' : ''} Exp`)
+                                                            : 'Exp: Any'}
+                                                    </span>
                                                 </div>
                                                 <div className="flex items-center text-slate-900">
                                                     {renderCurrencySymbol(job.currency, 'w-4 h-4 mr-2')}
