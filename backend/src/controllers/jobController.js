@@ -24,9 +24,15 @@ exports.createJob = async (req, res) => {
             return [];
         };
 
+        const generateSlug = (title) => {
+            if (!title) return '';
+            return title.trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+        };
+
         const job = await Job.create({
             job_id,
             title,
+            slug: generateSlug(title),
             role,
             company_id,
             company_name,
@@ -159,14 +165,58 @@ exports.getJobs = async (req, res) => {
     }
 };
 
-// @desc    Get job by ID
+// @desc    Get job by ID or Title Slug
 // @route   GET /api/jobs/:id
 // @access  Public
 exports.getJobById = async (req, res) => {
     try {
-        const job = await Job.findById(req.params.id)
-            .populate('company_id')
-            .populate('skills_required');
+        const identifier = decodeURIComponent(req.params.id).trim();
+        const mongoose = require('mongoose');
+
+        let job = null;
+
+        // 1. Try finding by MongoDB ObjectId if valid
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            job = await Job.findById(identifier)
+                .populate('company_id')
+                .populate('skills_required');
+        }
+
+        // 2. Try finding by unique job_id (e.g. JOB1001)
+        if (!job) {
+            job = await Job.findOne({ job_id: identifier })
+                .populate('company_id')
+                .populate('skills_required');
+        }
+
+        // 3. Try finding by stored slug (case-insensitive)
+        if (!job) {
+            job = await Job.findOne({
+                slug: new RegExp('^' + identifier.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+            })
+                .populate('company_id')
+                .populate('skills_required');
+        }
+
+        // 4. Try finding by title matching slug pattern (e.g. "Junior-Data-Analyst" -> "Junior Data Analyst")
+        if (!job) {
+            const titleFromName = identifier.replace(/[-_]+/g, ' ').trim();
+            job = await Job.findOne({
+                title: new RegExp('^' + titleFromName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'i')
+            })
+                .populate('company_id')
+                .populate('skills_required');
+        }
+
+        // 5. Fallback title search with loose regex
+        if (!job) {
+            const titleFromName = identifier.replace(/[-_]+/g, ' ').trim();
+            job = await Job.findOne({
+                title: { $regex: titleFromName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), $options: 'i' }
+            })
+                .populate('company_id')
+                .populate('skills_required');
+        }
 
         if (job) {
             res.json(job);
@@ -197,10 +247,16 @@ exports.updateJob = async (req, res) => {
                 return [];
             };
 
+            const generateSlug = (title) => {
+                if (!title) return '';
+                return title.trim().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+            };
+
             const updateData = {
                 ...req.body,
                 requirements: parseArray(req.body.requirements),
                 responsibilities: parseArray(req.body.responsibilities),
+                ...(req.body.title ? { slug: generateSlug(req.body.title) } : {}),
                 // Explicitly sanitize and fallback to existing only if truly missing
                 currency: (req.body.currency && typeof req.body.currency === 'string')
                     ? req.body.currency.trim().toUpperCase()

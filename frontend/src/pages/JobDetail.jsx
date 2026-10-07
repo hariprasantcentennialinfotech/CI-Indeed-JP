@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InrLogo from '../assets/inr-logo.jpg';
+import { getJobSlug } from '../utils/slug';
 
 const JobDetail = () => {
     // Centralized currency display logic
@@ -287,6 +288,16 @@ const JobDetail = () => {
         };
     }, [job]);
 
+    // Synchronize browser address bar to clean SEO slug (e.g. /jobs/Junior-Data-Analyst)
+    useEffect(() => {
+        if (job && job.title) {
+            const slug = getJobSlug(job);
+            if (slug && id !== slug) {
+                window.history.replaceState(null, '', `/jobs/${encodeURIComponent(slug)}`);
+            }
+        }
+    }, [job, id]);
+
     const handleApplyClick = async () => {
         if (!token) {
             navigate('/login');
@@ -494,16 +505,32 @@ const JobDetail = () => {
                             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-8 text-left">Key Highlights</h3>
                             <div className="space-y-8">
                                 <div className="flex items-start gap-4">
-                                    <div className="w-12 h-12 bg-green-50 text-green-700 rounded-2xl flex items-center justify-center flex-shrink-0">
-                                        <IndianRupee className="w-6 h-6" />
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${
+                                        String(job.currency).toUpperCase() === 'USD'
+                                            ? 'bg-blue-50 text-blue-600'
+                                            : 'bg-green-50 text-green-700'
+                                    }`}>
+                                        {String(job.currency).toUpperCase() === 'USD' ? (
+                                            <DollarSign className="w-6 h-6" />
+                                        ) : (
+                                            <IndianRupee className="w-6 h-6" />
+                                        )}
                                     </div>
                                     <div>
                                         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1 text-left">Monthly Compensation</p>
                                         <div className="text-xl font-black text-slate-900 flex items-center gap-1.5 flex-wrap">
-                                            <IndianRupee className="w-4 h-4" />
+                                            {String(job.currency).toUpperCase() === 'USD' ? (
+                                                <DollarSign className="w-4 h-4" />
+                                            ) : (
+                                                <IndianRupee className="w-4 h-4" />
+                                            )}
                                             <span>{Number(job.salary_min || 0).toLocaleString()}</span>
                                             <span className="text-slate-300">-</span>
-                                            <IndianRupee className="w-4 h-4" />
+                                            {String(job.currency).toUpperCase() === 'USD' ? (
+                                                <DollarSign className="w-4 h-4" />
+                                            ) : (
+                                                <IndianRupee className="w-4 h-4" />
+                                            )}
                                             <span>{Number(job.salary_max || 0).toLocaleString()}</span>
                                         </div>
                                     </div>

@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { Search, MapPin, Briefcase, DollarSign, Calendar, Filter, Loader2, ArrowRight, X, FileText, Send, Clock, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InrLogo from '../assets/inr-logo.jpg';
+import { getJobSlug } from '../utils/slug';
 
 const Jobs = () => {
     const [jobs, setJobs] = useState([]);
@@ -339,7 +340,7 @@ const Jobs = () => {
                                             </div>
 
                                             <div className="mb-8 flex-1">
-                                                <Link to={`/jobs/${job._id}`} className="block mb-2">
+                                                <Link to={`/jobs/${getJobSlug(job)}`} className="block mb-2">
                                                     <h2 className="text-xl font-black text-slate-900 group-hover:text-primary-600 transition-colors tracking-tight line-clamp-2">{job.title}</h2>
                                                 </Link>
                                                 <p className="text-primary-600 text-[11px] font-black uppercase tracking-[0.15em]">{job.company_name}</p>
@@ -370,7 +371,7 @@ const Jobs = () => {
                                             </div>
 
                                             <button
-                                                onClick={() => navigate(`/jobs/${job._id}`)}
+                                                onClick={() => navigate(`/jobs/${getJobSlug(job)}`)}
                                                 className="w-full py-4 bg-slate-50 text-slate-900 text-[11px] font-black tracking-[0.2em] uppercase rounded-2xl transition-all duration-300 flex items-center justify-center group-hover:bg-primary-50 group-hover:text-primary-700"
                                             >
                                                 VIEW DETAILS <ArrowRight className="w-3.5 h-3.5 ml-2" />

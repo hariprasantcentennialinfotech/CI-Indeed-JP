@@ -4,6 +4,7 @@ import api from '../api/axios';
 import { Plus, Briefcase, Users, Eye, Edit, Trash2, Loader2, X, MapPin, DollarSign, Clock, GraduationCap, Phone, Mail, FileText, Building2, CheckCircle2, ArrowRight, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InrLogo from '../assets/inr-logo.jpg';
+import { getJobSlug } from '../utils/slug';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -331,7 +332,7 @@ const AdminDashboard = () => {
                                 {jobs.map((job) => (
                                     <tr key={job._id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-5 text-left">
-                                            <Link to={`/jobs/${job._id}`} className="hover:text-primary-600 transition-colors">
+                                            <Link to={`/jobs/${getJobSlug(job)}`} className="hover:text-primary-600 transition-colors">
                                                 <p className="font-bold text-slate-900">{job.title}</p>
                                             </Link>
                                             <p className="text-sm text-slate-400">{job.job_id} • {job.role}</p>

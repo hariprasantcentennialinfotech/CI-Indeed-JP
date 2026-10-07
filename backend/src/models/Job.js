@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const jobSchema = new mongoose.Schema({
     job_id: { type: String, required: true, unique: true }, // unique public ID like JOB1024
     title: { type: String, required: true },
+    slug: { type: String, index: true },
     role: {
         type: String,
         enum: ['UI/UX Design', 'Web Development', 'App Development', 'Quality Assurance', 'Software Development', 'IT Consulting'],
